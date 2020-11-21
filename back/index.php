@@ -6,11 +6,12 @@ use App\Utils\Request;
 
 require './vendor/autoload.php';
 
-define('__BASE_DIR__', __DIR__);
-
 // Initialisation des variables d'environnement
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
+
+define('__BASE_DIR__', __DIR__);
+define('__APP_SECRET__', $_SERVER['APP_SECRET']);
 
 $request = Request::explodeUri($_SERVER['REQUEST_URI']);
 
