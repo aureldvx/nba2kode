@@ -2,15 +2,28 @@
 
 namespace App\Controller;
 
-use App\Utils\DatabaseInterface;
+use App\Utils\QueryBuilder;
+use App\Utils\Services;
+use PDO;
 
 class LoginController extends AbstractController
 {
     public static function login()
     {
-        var_dump(DatabaseInterface::test());
-        // return AbstractController::renderView('home', array(
-        //     'title' => 'ok c cool'
-        // ));
+        $query = new QueryBuilder();
+        $results = $query
+            ->insert(['name' => ':name'])
+            ->inTable('usrs')
+            ->setParameters([
+                [':name', 'slgrgrtmec', PDO::PARAM_STR],
+            ])
+            ->getQuery()
+            ->getResult();
+
+        Services::dump($results);
+
+//        return AbstractController::renderView('home', [
+//            'title' => 'ok c cool',
+//        ]);
     }
 }
