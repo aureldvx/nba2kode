@@ -28,24 +28,24 @@ class QueryBuilder extends DatabaseInterface
     {
         $this->sql = $this->sqlBuilder['operation'];
         if (isset($this->sqlBuilder['items'])) {
-            $this->sql .= ' '.$this->sqlBuilder['items'];
+            $this->sql .= ' ' . $this->sqlBuilder['items'];
         }
         if (isset($this->sqlBuilder['table'])) {
-            $this->sql .= ' FROM '.$this->sqlBuilder['table'];
+            $this->sql .= ' FROM ' . $this->sqlBuilder['table'];
         } else {
             return new Exception('Une table doit être renseignée pour exécuter la query.');
         }
         if (isset($this->sqlBuilder['where'])) {
-            $this->sql .= ' '.$this->sqlBuilder['where'];
+            $this->sql .= ' ' . $this->sqlBuilder['where'];
         }
         if (isset($this->sqlBuilder['groupBy'])) {
-            $this->sql .= ' '.$this->sqlBuilder['groupBy'];
+            $this->sql .= ' ' . $this->sqlBuilder['groupBy'];
         }
         if (isset($this->sqlBuilder['order'])) {
-            $this->sql .= ' '.$this->sqlBuilder['order'];
+            $this->sql .= ' ' . $this->sqlBuilder['order'];
         }
         if (isset($this->sqlBuilder['limit'])) {
-            $this->sql .= ' '.$this->sqlBuilder['limit'];
+            $this->sql .= ' ' . $this->sqlBuilder['limit'];
         }
         $this->sql .= ';';
         Services::dump($this->sql);
@@ -61,17 +61,17 @@ class QueryBuilder extends DatabaseInterface
     {
         $this->sql = $this->sqlBuilder['operation'];
         if (isset($this->sqlBuilder['table'])) {
-            $this->sql .= ' '.$this->sqlBuilder['table'];
+            $this->sql .= ' ' . $this->sqlBuilder['table'];
         } else {
             return new Exception('Une table doit être renseignée pour exécuter la query.');
         }
         if (isset($this->sqlBuilder['params'])) {
-            $this->sql .= ' '.$this->sqlBuilder['params'];
+            $this->sql .= ' ' . $this->sqlBuilder['params'];
         } else {
             return new Exception('Des changements doivent êtres renseignés pour exécuter la query.');
         }
         if (isset($this->sqlBuilder['where'])) {
-            $this->sql .= ' '.$this->sqlBuilder['where'];
+            $this->sql .= ' ' . $this->sqlBuilder['where'];
         }
         $this->sql .= ';';
         Services::dump($this->sql);
@@ -87,7 +87,7 @@ class QueryBuilder extends DatabaseInterface
     {
         $this->sql = $this->sqlBuilder['operation'];
         if (isset($this->sqlBuilder['table'])) {
-            $this->sql .= ' '.$this->sqlBuilder['table'];
+            $this->sql .= ' ' . $this->sqlBuilder['table'];
         } else {
             return new Exception('Une table doit être renseignée pour exécuter la query.');
         }
@@ -128,12 +128,12 @@ class QueryBuilder extends DatabaseInterface
     {
         $this->sql = $this->sqlBuilder['operation'];
         if (isset($this->sqlBuilder['table'])) {
-            $this->sql .= ' '.$this->sqlBuilder['table'];
+            $this->sql .= ' ' . $this->sqlBuilder['table'];
         } else {
             return new Exception('Une table doit être renseignée pour exécuter la query.');
         }
         if (isset($this->sqlBuilder['where'])) {
-            $this->sql .= ' '.$this->sqlBuilder['where'];
+            $this->sql .= ' ' . $this->sqlBuilder['where'];
         } else {
             return new Exception('Une recherche WHERE doit être renseignée pour exécuter la query.');
         }
@@ -274,13 +274,13 @@ class QueryBuilder extends DatabaseInterface
                 if (is_string($key) && is_string($value)) {
                     $safeValue = htmlspecialchars($value);
                     $this->parameters[] = ":$safeValue";
-                    $params[] = htmlspecialchars($key).' = '.$safeValue;
+                    $params[] = htmlspecialchars($key) . ' = ' . $safeValue;
                 } else {
                     new Exception('Les paramètres $key et $value de la fonction where doivent être de type string');
                 }
             }
             if (count($params) > 0) {
-                $this->sqlBuilder['params'] = 'SET '.implode(', ', $params);
+                $this->sqlBuilder['params'] = 'SET ' . implode(', ', $params);
             }
         } else {
             new Exception('Le paramètre $items de la fonction update doit être de type array');
@@ -370,7 +370,7 @@ class QueryBuilder extends DatabaseInterface
                     $previousWhere = $this->sqlBuilder['where'];
                     $this->sqlBuilder['where'] = [];
                     $this->sqlBuilder['where'][] = " AND $key $operator :$safeValue";
-                    $this->sqlBuilder['where'] = $previousWhere.implode($this->sqlBuilder['where']);
+                    $this->sqlBuilder['where'] = $previousWhere . implode($this->sqlBuilder['where']);
                 }
                 $this->parameters[] = ":$safeValue";
             } else {
@@ -404,7 +404,7 @@ class QueryBuilder extends DatabaseInterface
                     $previousWhere = $this->sqlBuilder['where'];
                     $this->sqlBuilder['where'] = [];
                     $this->sqlBuilder['where'][] = " OR $key $operator :$safeValue";
-                    $this->sqlBuilder['where'] = $previousWhere.implode($this->sqlBuilder['where']);
+                    $this->sqlBuilder['where'] = $previousWhere . implode($this->sqlBuilder['where']);
                 }
                 $this->parameters[] = ":$safeValue";
             } else {
@@ -462,7 +462,7 @@ class QueryBuilder extends DatabaseInterface
                     $previousWhere = $this->sqlBuilder['order'];
                     $this->sqlBuilder['order'] = [];
                     $this->sqlBuilder['order'][] = "$safeKey $order";
-                    $this->sqlBuilder['order'] = $previousWhere.', '.implode(', ', $this->sqlBuilder['order']);
+                    $this->sqlBuilder['order'] = $previousWhere . ', ' . implode(', ', $this->sqlBuilder['order']);
                 }
             } else {
                 new Exception('Les paramètres $key et $value de la fonction orWhere doivent être de type string');

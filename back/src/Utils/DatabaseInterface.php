@@ -13,7 +13,8 @@ class DatabaseInterface extends Services
     {
         if (!$this->pdo) {
             try {
-                $this->pdo = new PDO('mysql:host='.Services::getEnv('DB_HOST').';port='.Services::getEnv('DB_PORT').';dbname='.Services::getEnv('DB_NAME'),
+                $this->pdo = new PDO(
+                    'mysql:host=' . Services::getEnv('DB_HOST') . ';port=' . Services::getEnv('DB_PORT') . ';dbname=' . Services::getEnv('DB_NAME'),
                     Services::getEnv('DB_USER'),
                     Services::getEnv('DB_PASSWORD'),
                     [
