@@ -48,7 +48,7 @@ class QueryBuilder extends DatabaseInterface
             $this->sql .= ' ' . $this->sqlBuilder['limit'];
         }
         $this->sql .= ';';
-        Services::dump($this->sql);
+        // Services::dump($this->sql);
 
         return $this;
     }
@@ -74,7 +74,7 @@ class QueryBuilder extends DatabaseInterface
             $this->sql .= ' ' . $this->sqlBuilder['where'];
         }
         $this->sql .= ';';
-        Services::dump($this->sql);
+        // Services::dump($this->sql);
 
         return $this;
     }
@@ -115,7 +115,7 @@ class QueryBuilder extends DatabaseInterface
             $this->sql .= ')';
         }
         $this->sql .= ';';
-        Services::dump($this->sql);
+        // Services::dump($this->sql);
 
         return $this;
     }
@@ -138,7 +138,7 @@ class QueryBuilder extends DatabaseInterface
             return new Exception('Une recherche WHERE doit être renseignée pour exécuter la query.');
         }
         $this->sql .= ';';
-        Services::dump($this->sql);
+        // Services::dump($this->sql);
 
         return $this;
     }
@@ -531,13 +531,28 @@ class QueryBuilder extends DatabaseInterface
     public function setParameters(array $parameters)
     {
         foreach ($parameters as $parameter) {
-            Services::dump($parameter);
             if (isset($parameter[2])) {
                 $this->buildQueryParameter($parameter[0], $parameter[1], $parameter[2]);
             } else {
                 $this->buildQueryParameter($parameter[0], $parameter[1]);
             }
         }
+
+        return $this;
+    }
+
+
+    /**
+     * Create a raw query for out of possibilities contexts.
+     *
+     * @param string $query
+     *
+     * @return $this
+     */
+    public function raw(string $query)
+    {
+        $this->sqlBuilder['operation'] = 'RAW';
+        $this->sql = $query;
 
         return $this;
     }
@@ -559,6 +574,8 @@ class QueryBuilder extends DatabaseInterface
                 return $this->deleteQuery();
             case 'INSERT INTO':
                 return $this->insertQuery();
+            case 'RAW':
+                return $this;
             default:
                 return new Exception("L'opération demandée est impossible à réaliser.");
         }
@@ -572,24 +589,28 @@ class QueryBuilder extends DatabaseInterface
      */
     public function getResult()
     {
-        $pdo = $this->connect();
-        $query = $pdo->prepare($this->sql);
+        try {
+            $pdo = $this->connect();
+            $query = $pdo->prepare($this->sql);
 
-        if (count($this->bindedParameters) > 0) {
-            foreach ($this->bindedParameters as $param) {
-                if (isset($param['type'])) {
-                    $query->bindValue($param['param'], $param['value'], $param['type']);
-                } else {
-                    $query->bindValue($param['param'], $param['value']);
+            if (count($this->bindedParameters) > 0) {
+                foreach ($this->bindedParameters as $param) {
+                    if (isset($param['type'])) {
+                        $query->bindValue($param['param'], $param['value'], $param['type']);
+                    } else {
+                        $query->bindValue($param['param'], $param['value']);
+                    }
                 }
             }
-        }
 
-        if (false !== strpos($this->sql, 'SELECT')) {
-            return $query->fetchAll();
-        }
+            if (false !== strpos($this->sql, 'SELECT')) {
+                return $query->fetchAll();
+            }
 
-        return $query->execute();
+            return $query->execute();
+        } catch (\PDOException $exception) {
+            Services::dump($exception);
+        }
     }
 
 

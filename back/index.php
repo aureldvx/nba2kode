@@ -32,7 +32,7 @@ if ('admin' === $request['path'][0]) {
 } else {
     switch ($request['path'][0]) {
         case 'import':
-            Services::dump(ImportController::importTeamStats());
+            ImportController::importDataFromApi();
             break;
         default:
             LoginController::login();
