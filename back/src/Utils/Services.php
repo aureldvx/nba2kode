@@ -3,6 +3,7 @@
 namespace App\Utils;
 
 use Exception;
+use PDO;
 
 class Services
 {
@@ -93,5 +94,37 @@ class Services
     public static function hashPassword(string $password)
     {
         return password_hash($password, PASSWORD_ARGON2I);
+    }
+
+
+    /**
+     * Get user id from session.
+     *
+     * @return mixed
+     */
+    public static function getUser()
+    {
+        if (isset($_SESSION['authUser'])) {
+            $hash = $_SESSION['authUser'];
+            preg_match_all('/^(\d+\$)+/', $hash, $positionMatches);
+            $positions = explode('$', $positionMatches[0][0]);
+            $userId = (int)substr($hash, -((int)$positions[2] + (int)$positions[0]), (int)$positions[0]);
+
+            $user = (new QueryBuilder())
+                ->select()
+                ->inTable('usrs')
+                ->where('id', '=', 'id')
+                ->setParameters([[':id', $userId, PDO::PARAM_INT]])
+                ->getQuery()
+                ->getResult()
+            ;
+
+            if (count($user) === 0) {
+                (new Response())->redirectToRoute('/login');
+            }
+
+            return $user[0];
+        }
+        return (new Response())->redirectToRoute('/login');
     }
 }
