@@ -7,10 +7,16 @@ use App\Utils\Request;
 use App\Utils\Response;
 use App\Utils\Services;
 use DateTime;
+use Exception;
 use PDO;
 
 class AdminController extends AbstractController
 {
+    /**
+     * Listing de tous les matchs.
+     *
+     * @return Exception|mixed
+     */
     public static function index()
     {
         $user = Services::getUser();
@@ -28,6 +34,9 @@ class AdminController extends AbstractController
     }
 
 
+    /**
+     * Suppression d'un match donné.
+     */
     public static function delete()
     {
         $user = Services::getUser();
@@ -59,6 +68,12 @@ class AdminController extends AbstractController
     }
 
 
+    /**
+     * Mise à jour d'un match donné.
+     *
+     * @return Exception|mixed
+     * @throws Exception
+     */
     public static function edit()
     {
         $user = Services::getUser();
@@ -137,7 +152,7 @@ class AdminController extends AbstractController
 
             try {
                 new \DateTime($playDate, new \DateTimeZone('Europe/Paris'));
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Services::addFlash('error', 'La date renseignée n\'a pas le format adapté');
                 $errors = true;
             }
@@ -204,7 +219,7 @@ class AdminController extends AbstractController
                     ;
 
                     (new Response())->redirectToRoute('/admin');
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Services::addFlash('error', 'Une erreur est survenue lors la création du match. Veuillez réessayer.');
                 }
             }
@@ -221,6 +236,12 @@ class AdminController extends AbstractController
     }
 
 
+    /**
+     * Création d'un nouveau match.
+     *
+     * @return Exception|mixed
+     * @throws Exception
+     */
     public static function create()
     {
         $user = Services::getUser();
@@ -266,7 +287,7 @@ class AdminController extends AbstractController
 
             try {
                 new \DateTime($playDate, new \DateTimeZone('Europe/Paris'));
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Services::addFlash('error', 'La date renseignée n\'a pas le format adapté');
                 $errors = true;
             }
@@ -331,7 +352,7 @@ class AdminController extends AbstractController
                     ;
 
                     (new Response())->redirectToRoute('/admin');
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Services::addFlash('error', 'Une erreur est survenue lors la création du match. Veuillez réessayer.');
                 }
             }
@@ -345,6 +366,4 @@ class AdminController extends AbstractController
             '_csrf_token' => $_SESSION['_csrf_token'],
         ]);
     }
-
-
 }

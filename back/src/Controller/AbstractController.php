@@ -6,7 +6,7 @@ class AbstractController
 {
     protected static function renderView(string $path, ?array $parameters = [])
     {
-        if (!file_exists(__BASE_DIR__."/templates/${path}.php")) {
+        if (!file_exists(__BASE_DIR__ . "/templates/${path}.php")) {
             return new \Exception("Aucun template trouvé avec le nom \"${path}\".");
         }
 
@@ -16,6 +16,6 @@ class AbstractController
             }
         }
 
-        return include __BASE_DIR__.'/templates/'.$path.'.php';
+        return include __BASE_DIR__ . '/templates/' . $path . '.php';
     }
 }
