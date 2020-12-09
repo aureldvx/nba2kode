@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Utils\QueryBuilder;
+use App\Utils\Response;
 use App\Utils\Services;
 use DateTime;
 use Exception;
@@ -10,15 +11,6 @@ use PDO;
 
 class LoginController extends AbstractController
 {
-    public static function login()
-    {
-        echo 'login page';
-
-//        return AbstractController::renderView('home', [
-//            'title' => 'ok c cool',
-//        ]);
-    }
-
 
     /**
      * Create database models.
@@ -55,6 +47,92 @@ class LoginController extends AbstractController
     }
 
 
+    /**
+     * Login user.
+     *
+     * @return Exception|mixed
+     * @throws Exception
+     */
+    public static function login()
+    {
+        if (isset($_SESSION['authUser'])) {
+            (new Response())->redirectToRoute('/admin');
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $identifier = Services::sanitizeEntry($_POST['username'], FILTER_SANITIZE_STRING);
+            $password = Services::sanitizeEntry($_POST['password'], FILTER_UNSAFE_RAW);
+            $token = Services::sanitizeEntry($_POST['_csrf_token'], FILTER_UNSAFE_RAW);
+
+            $errors = false;
+            if ($password === '') {
+                Services::addFlash('error', 'Merci de renseigner votre mot de passe.');
+                $errors = true;
+            }
+
+            if ($identifier === '') {
+                Services::addFlash('error', 'Merci de rentrer votre identifiant.');
+                $errors = true;
+            }
+
+            $checkEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+            if (!$checkEmail) {
+                $user = (new QueryBuilder())
+                    ->select()
+                    ->inTable('usrs')
+                    ->where('username', '=', 'username')
+                    ->setParameters([[':username', $identifier, PDO::PARAM_STR]])
+                    ->getQuery()
+                    ->getResult()
+                ;
+            } else {
+                $user = (new QueryBuilder())
+                    ->select()
+                    ->inTable('usrs')
+                    ->where('email', '=', 'email')
+                    ->setParameters([[':email', $checkEmail, PDO::PARAM_STR]])
+                    ->getQuery()
+                    ->getResult()
+                ;
+            }
+
+            if (count($user) === 0) {
+                Services::addFlash('error', "L'identifiant et/ou le mot de passe saisi n'est pas valide.");
+                $errors = true;
+            } else {
+                if (!password_verify($password, $user[0]->password)) {
+                    Services::addFlash('error', "L'identifiant et/ou le mot de passe saisi n'est pas valide.");
+                    $errors = true;
+                }
+            }
+
+            if ($token !== $_SESSION['_csrf_token']) {
+                Services::addFlash('error', 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer');
+                $errors = true;
+            }
+
+            if (!$errors) {
+                $hashFirstPart = bin2hex(random_bytes(24));
+                $hashLastPart = bin2hex(random_bytes(8 - strlen($user[0]->id)));
+                $_SESSION['authUser'] = strlen($user[0]->id) . '$' . strlen($hashFirstPart) . '$' . strlen($hashLastPart) . '$' . $hashFirstPart . $user[0]->id . $hashLastPart;
+                (new Response())->redirectToRoute('/admin');
+            }
+        }
+
+        $_SESSION['_csrf_token'] = bin2hex(random_bytes(32));
+
+        return AbstractController::renderView('auth/login', [
+            '_csrf_token' => $_SESSION['_csrf_token'],
+        ]);
+    }
+
+
+    /**
+     * Create user account.
+     *
+     * @return Exception|mixed|string
+     * @throws Exception
+     */
     public static function signup()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -85,8 +163,6 @@ class LoginController extends AbstractController
                 $errors = true;
             }
 
-            Services::dump($token);
-            Services::dump($_SESSION['_csrf_token']);
             if ($token !== $_SESSION['_csrf_token']) {
                 Services::addFlash('error', 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer');
                 $errors = true;
@@ -133,5 +209,13 @@ class LoginController extends AbstractController
 
     public static function resetPassword()
     {
+    }
+
+    public static function logout()
+    {
+        if (isset($_SESSION['authUser'])) {
+            unset($_SESSION['authUser']);
+            (new Response())->redirectToRoute('/login');
+        }
     }
 }
