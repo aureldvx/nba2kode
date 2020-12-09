@@ -604,6 +604,7 @@ class QueryBuilder extends DatabaseInterface
             }
 
             if (false !== strpos($this->sql, 'SELECT')) {
+                $query->execute();
                 return $query->fetchAll();
             }
 
