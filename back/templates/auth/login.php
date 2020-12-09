@@ -24,7 +24,6 @@ if (!defined('__APP_SECRET__')) {
   </div>
   <input type="hidden" name="_csrf_token" value="<?= $vars['_csrf_token'] ?>">
   <div class="formActions">
-    <a href="/forgotten-password">Mot de passe oublié</a>
     <button type="submit">Se connecter</button>
   </div>
 </form>
