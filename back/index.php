@@ -22,13 +22,23 @@ $request = Request::explodeUri($_SERVER['REQUEST_URI']);
 
 // Routing
 if ('admin' === $request['path'][0]) {
-    switch ($request['path'][1]) {
-        case '':
-
-            break;
-        default:
-            AdminController::index();
-            break;
+    if (isset($request['path'][1])) {
+        switch ($request['path'][1]) {
+            case 'create':
+                AdminController::create();
+                break;
+            case 'edit':
+                AdminController::edit();
+                break;
+            case 'delete':
+                AdminController::delete();
+                break;
+            default:
+                AdminController::index();
+                break;
+        }
+    } else {
+        AdminController::index();
     }
 } else {
     switch ($request['path'][0]) {
@@ -40,7 +50,6 @@ if ('admin' === $request['path'][0]) {
             LoginController::createModel();
             break;
         case 'signup':
-            Services::dump($_SESSION);
             LoginController::signup();
             break;
         case 'forgotten-password':
@@ -49,9 +58,12 @@ if ('admin' === $request['path'][0]) {
         case 'reset-password':
             LoginController::resetPassword();
             break;
+        case 'logout':
+            LoginController::logout();
+            break;
         case 'login':
         default:
             LoginController::login();
-            break;
+        break;
     }
 }
