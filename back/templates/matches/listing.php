@@ -20,6 +20,7 @@ include_once __TEMPLATES_DIR__ . 'components/notifications.php'
 <header>
   <h1>Liste des matchs</h1>
   <div class="actions">
+    <a href="/admin/generate-key">Générer une clé d'API</a>
     <a href="/admin/create">Ajouter un match</a>
   </div>
 </header>

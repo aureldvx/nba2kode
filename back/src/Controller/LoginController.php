@@ -33,6 +33,7 @@ class LoginController extends AbstractController
                     email VARCHAR(200) UNIQUE NOT NULL,
                     password VARCHAR(255) NOT NULL,
                     reset_password_token VARCHAR(255),
+                    api_key VARCHAR(255) NULL,
                     created_at DATETIME NOT NULL,
                     updated_at DATETIME NOT NULL
                 )')
