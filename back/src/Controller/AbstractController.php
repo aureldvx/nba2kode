@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
-class AbstractController
+use App\Utils\Services;
+
+class AbstractController extends Services
 {
     protected static function renderView(string $path, ?array $parameters = [])
     {

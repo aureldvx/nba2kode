@@ -57,10 +57,13 @@ class ApiController extends AbstractController
     public static function getAllMatches()
     {
         $request = json_decode(file_get_contents('php://input'));
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: ' . Services::getEnv('FRONT_URL'));
         if (self::verifyRequest($request)) {
             $matches = (new QueryBuilder())
                 ->select(
                     [
+                        'id',
                         'play_date',
                         'teams_home_name',
                         'teams_home_logo',
@@ -71,10 +74,17 @@ class ApiController extends AbstractController
                     ]
                 )
                 ->inTable('matches')
+                ->orderBy('updated_at', 'DESC')
                 ->getQuery()
                 ->getResult()
             ;
-            print_r($matches);
+            echo json_encode(
+                [
+                    'code' => 'SUCCESS',
+                    'data' => $matches
+                ]
+            );
+            return;
         }
     }
 
@@ -87,8 +97,9 @@ class ApiController extends AbstractController
     public static function addMatch()
     {
         $request = json_decode(file_get_contents('php://input'));
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: ' . Services::getEnv('FRONT_URL'));
         if (self::verifyRequest($request)) {
-            $errors = [];
             if (isset($request->match)) {
                 if (
                     !isset($request->match->playDate) ||
@@ -97,8 +108,13 @@ class ApiController extends AbstractController
                     !isset($request->match->awayTeam) ||
                     !isset($request->match->awayScore)
                 ) {
-                    $errors[] = 'Le format envoyé n\'est pas correct. Vérifiez la présence de toutes les clés';
-                    return print_r($errors);
+                    echo json_encode(
+                        [
+                            'code' => 'ERROR',
+                            'message' => 'Le format envoyé n\'est pas correct. Vérifiez la présence de toutes les clés'
+                        ]
+                    );
+                    return;
                 }
 
                 $results = (new QueryBuilder())
@@ -122,79 +138,127 @@ class ApiController extends AbstractController
                 $awayScore = (int)Services::sanitizeEntry($request->match->awayScore, FILTER_SANITIZE_NUMBER_INT);
 
                 if (!in_array($homeTeam, $teams) || !in_array($awayTeam, $teams)) {
-                    $errors[] = 'Une des deux équipes concernées n\'existe pas';
-                    return print_r($errors);
+                    echo json_encode(
+                        [
+                            'code' => 'ERROR',
+                            'message' => 'Une des deux équipes concernées n\'existe pas'
+                        ]
+                    );
+                    return;
                 }
 
                 try {
                     new DateTime($playDate, new \DateTimeZone('Europe/Paris'));
                 } catch (\Exception $e) {
-                    $errors[] = 'La date renseignée n\'a pas le format adapté';
-                    return print_r($errors);
+                    echo json_encode(
+                        [
+                            'code' => 'ERROR',
+                            'message' => 'La date renseignée n\'a pas le format adapté'
+                        ]
+                    );
+                    return;
                 }
 
-                if (count($errors) === 0) {
-                    $homeLogo = (new QueryBuilder())
-                        ->select('teams_home_logo')
+                $homeLogo = (new QueryBuilder())
+                    ->select('teams_home_logo')
+                    ->inTable('matches')
+                    ->where('teams_home_name', '=', 'name')
+                    ->limit(1)
+                    ->setParameters([[':name', $homeTeam]])
+                    ->getQuery()
+                    ->getResult()
+                ;
+                $homeLogo = $homeLogo[0]->teams_home_logo;
+
+                $awayLogo = (new QueryBuilder())
+                    ->select('teams_away_logo')
+                    ->inTable('matches')
+                    ->where('teams_away_name', '=', 'name')
+                    ->limit(1)
+                    ->setParameters([[':name', $awayTeam]])
+                    ->getQuery()
+                    ->getResult()
+                ;
+                $awayLogo = $awayLogo[0]->teams_away_logo;
+
+                try {
+                    (new QueryBuilder())
+                        ->insert(
+                            [
+                                'play_date' => ':play_date',
+                                'teams_home_name' => ':teams_home_name',
+                                'teams_home_logo' => ':teams_home_logo',
+                                'score_home_total' => ':score_home_total',
+                                'teams_away_name' => ':teams_away_name',
+                                'teams_away_logo' => ':teams_away_logo',
+                                'score_away_total' => ':score_away_total',
+                                'updated_at' => ':updated_at'
+                            ]
+                        )
                         ->inTable('matches')
-                        ->where('teams_home_name', '=', 'name')
-                        ->limit(1)
-                        ->setParameters([[':name', $homeTeam]])
+                        ->setParameters(
+                            [
+                                [':play_date', (new DateTime($playDate, new \DateTimeZone('Europe/Paris')))->format('Y-m-d H:i:s'), PDO::PARAM_STR],
+                                [':teams_home_name', $homeTeam, PDO::PARAM_STR],
+                                [':teams_home_logo', $homeLogo, PDO::PARAM_STR],
+                                [':score_home_total', $homeScore, PDO::PARAM_INT],
+                                [':teams_away_name', $awayTeam, PDO::PARAM_STR],
+                                [':teams_away_logo', $awayLogo, PDO::PARAM_STR],
+                                [':score_away_total', $awayScore, PDO::PARAM_INT],
+                                [':updated_at', (new DateTime('now', new \DateTimeZone('Europe/Paris')))->format('Y-m-d H:i:s'), PDO::PARAM_STR],
+                            ]
+                        )
                         ->getQuery()
                         ->getResult()
                     ;
-                    $homeLogo = $homeLogo[0]->teams_home_logo;
-
-                    $awayLogo = (new QueryBuilder())
-                        ->select('teams_away_logo')
-                        ->inTable('matches')
-                        ->where('teams_away_name', '=', 'name')
-                        ->limit(1)
-                        ->setParameters([[':name', $awayTeam]])
-                        ->getQuery()
-                        ->getResult()
-                    ;
-                    $awayLogo = $awayLogo[0]->teams_away_logo;
-
-                    try {
-                        (new QueryBuilder())
-                            ->insert(
-                                [
-                                    'play_date' => ':play_date',
-                                    'teams_home_name' => ':teams_home_name',
-                                    'teams_home_logo' => ':teams_home_logo',
-                                    'score_home_total' => ':score_home_total',
-                                    'teams_away_name' => ':teams_away_name',
-                                    'teams_away_logo' => ':teams_away_logo',
-                                    'score_away_total' => ':score_away_total',
-                                    'updated_at' => ':updated_at'
-                                ]
-                            )
-                            ->inTable('matches')
-                            ->setParameters(
-                                [
-                                    [':play_date', (new DateTime($playDate, new \DateTimeZone('Europe/Paris')))->format('Y-m-d H:i:s'), PDO::PARAM_STR],
-                                    [':teams_home_name', $homeTeam, PDO::PARAM_STR],
-                                    [':teams_home_logo', $homeLogo, PDO::PARAM_STR],
-                                    [':score_home_total', $homeScore, PDO::PARAM_INT],
-                                    [':teams_away_name', $awayTeam, PDO::PARAM_STR],
-                                    [':teams_away_logo', $awayLogo, PDO::PARAM_STR],
-                                    [':score_away_total', $awayScore, PDO::PARAM_INT],
-                                    [':updated_at', (new DateTime('now', new \DateTimeZone('Europe/Paris')))->format('Y-m-d H:i:s'), PDO::PARAM_STR],
-                                ]
-                            )
-                            ->getQuery()
-                            ->getResult()
-                        ;
-                        echo 'SUCCESS';
-                    } catch (Exception $e) {
-                        echo $e;
-                    }
+                    echo json_encode(['code' => 'SUCCESS']);
+                    return;
+                } catch (Exception $e) {
+                    echo json_encode([
+                        'code' => 'ERROR',
+                        'message' => $e
+                    ]);
+                    return;
                 }
             } else {
-                $errors[] = 'Une clé `match` est nécessaire pour ajouter un match';
-                return print_r($errors);
+                echo json_encode([
+                    'code' => 'ERROR',
+                    'message' => 'Une clé `match` est nécessaire pour ajouter un match'
+                ]);
+                return;
             }
+        }
+    }
+
+
+    public static function getTeams()
+    {
+        $request = json_decode(file_get_contents('php://input'));
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: ' . Services::getEnv('FRONT_URL'));
+        if (self::verifyRequest($request)) {
+            $names = (new QueryBuilder())
+                ->select('teams_home_name')
+                ->inTable('matches')
+                ->orderBy('teams_home_name', 'DESC')
+                ->getQuery()
+                ->getResult()
+            ;
+
+            $teams = [];
+            foreach ($names as $team) {
+                $teams[] = $team->teams_home_name;
+            }
+            $teams = array_unique($teams);
+            sort($teams);
+
+            echo json_encode(
+                [
+                    'code' => 'SUCCESS',
+                    'data' => $teams
+                ]
+            );
+            return;
         }
     }
 
@@ -205,6 +269,8 @@ class ApiController extends AbstractController
     public static function deleteMatch()
     {
         $request = json_decode(file_get_contents('php://input'));
+        header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: ' . Services::getEnv('FRONT_URL'));
         if (self::verifyRequest($request)) {
             $matchId = (int)Services::sanitizeEntry($request->matchId, FILTER_SANITIZE_STRING);
             $matchExists = (new QueryBuilder())
@@ -227,9 +293,14 @@ class ApiController extends AbstractController
                         ->getQuery()
                         ->getResult()
                     ;
-                    echo 'SUCCESS';
+                    echo json_encode(['code' => 'SUCCESS']);
+                    return;
                 } catch (Exception $e) {
-                    echo $e;
+                    echo json_encode([
+                       'code' => 'ERROR',
+                       'message' => $e
+                    ]);
+                    return;
                 }
             }
         }
@@ -261,15 +332,16 @@ class ApiController extends AbstractController
                 if (count($query) > 0) {
                     return true;
                 } else {
-                    echo "La clé d'API n'est pas valide";
                     return false;
                 }
             } catch (Exception $e) {
-                echo $e;
                 return false;
             }
         }
 
-        return false;
+        echo json_encode([
+           'code' => 'ERROR',
+           'message' => "Cette méthode HTTP n'est pas acceptée"
+        ]);
     }
 }

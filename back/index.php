@@ -55,6 +55,9 @@ if ('admin' === $request['path'][0]) {
             case 'add-match':
                 ApiController::addMatch();
                 break;
+            case 'teams':
+                ApiController::getTeams();
+                break;
         }
     }
 } else {
