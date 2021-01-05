@@ -4,7 +4,6 @@ Ce repository contient l'ensemble de mon rendu, côté PHP mais aussi côté Typ
 > Créer une base de données qu'il sera nécessaire de renseigner dans le `.env` du répertoire `back`
 
 ## PHP
----
 
 ### Installation
 ```bash
@@ -39,7 +38,6 @@ php -S localhost:6587
 - Bonne visite !
 
 ## TypeScript
----
 
 ### Installation
 ```bash
