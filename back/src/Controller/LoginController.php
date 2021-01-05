@@ -189,9 +189,10 @@ class LoginController extends AbstractController
                         ]
                     )
                     ->getQuery()
-                    ->getResult();
+                    ->getResult()
+                ;
 
-                return 'Inscription finalisée';
+                (new Response())->redirectToRoute('/admin');
             }
         }
 

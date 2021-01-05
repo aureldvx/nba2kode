@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "concurrently \"tsc --watch --outDir ./build src/app.ts\" \"nodemon ./build/app.js\""
+    "dev": "./node_modules/.bin/concurrently \"tsc --watch --outDir ./build src/app.ts\" \"./node_modules/.bin/nodemon ./build/app.js\"",
+    "build": "./node_modules/.bin/postcss ./assets/style.css --config ./postcss.config.js --output ./assets/main.css"
   },
   "keywords": [],
   "author": "",

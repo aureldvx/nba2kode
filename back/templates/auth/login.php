@@ -12,7 +12,7 @@ if (!defined('__APP_SECRET__')) {
 </head>
 <body class="h-screen w-full flex items-center justify-center font-sans">
 <?php include_once __TEMPLATES_DIR__ . 'components/notifications.php'?>
-<form action="<?= str_replace('/index.php', '', $_SERVER['PHP_SELF']) ?>" method="post" class="rounded-md shadow-lg flex flex-col items-stretch w-2/12 p-4">
+<form action="<?= str_replace('/index.php', '', $_SERVER['PHP_SELF']) ?>" method="post" class="rounded-md shadow-lg flex flex-col items-stretch w-4/12 p-4">
   <h1 class="text-2xl font-bold text-center">Connexion utilisateur</h1>
   <div class="mt-5">
     <label for="username">Identifiant</label>
